@@ -1,0 +1,33 @@
+<!--http://bit.ly/QRNakashi-->
+
+
+<html dir="ltr" lang="cs">
+
+<head>
+    <meta charset="utf-8">
+    <title>QRNakashi</title>
+    <script>
+function onLoad() {
+    document.body.innerHTML = ""
+    var ifr = document.createElement("iframe")
+    ifr.src = "http://bit.ly/QRNakashi"
+    document.body.appendChild(ifr)
+    document.body.innerHTML += "<br><a target='_blank' href='http://bit.ly/QRNakashi'>Odkaz z QR kódu</a>"
+    setTimeout(ifrLoaded, 1000)
+}
+
+function ifrLoaded() {
+    console.log(document.getElementsByTagName("iframe")[0].src)
+    console.log(document.getElementsByTagName("iframe")[0].contentWindow.location)
+    console.log("Location href must be: https://www.youtube.com/channel/UCsx_KNHztAojYbuJNBFRT4Q?sub_confirmation=1")
+}
+    </script>
+</head>
+
+<body>
+    <script>
+        document.body.onload = onLoad
+    </script>
+</body>
+
+</html>
