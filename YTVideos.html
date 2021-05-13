@@ -10,11 +10,11 @@
 <!--<button onclick="loadNext()">Load next 64</button>
 <button onclick="OK()">OK</button>-->
 <input id="canDo" value="1">
-<div id="videoID"></div>
+<h1 id="videoID">Waiting to start...</h1>
 <div id="videoIDs"></div>
 <div id="root" style="display: none"></div>
 //localStorage.clear();<br>
-(localStorage.IDs?(JSON.parse(localStorage.IDs).length > 0):"Nothing.")
+(localStorage.IDs?(JSON.parse(localStorage.IDs).length > 0?"IDs are avalbiable.":"IDs aren't."):"Nothing.")
 <script>
 var rootDiv = document.getElementById("root")
 var oneCharsFromID = "abcdefghijklmnopqrstuvwxyz"
