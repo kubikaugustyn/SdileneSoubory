@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Youtube videos</title>
+</head>
+<body>
+<noscript>You must enable JavaScript in your browser.</noscript>
+<button onclick="loadNext()">Start</button>
+<!--<button onclick="loadNext()">Load next 64</button>
+<button onclick="OK()">OK</button>-->
+<input id="canDo" value="1">
+<div id="videoID"></div>
+<div id="videoIDs"></div>
+<div id="root" style="display: none"></div>
+//localStorage.clear();<br>
+(localStorage.IDs?(JSON.parse(localStorage.IDs).length > 0):"Nothing.")
+<script>
+var rootDiv = document.getElementById("root")
+var oneCharsFromID = "abcdefghijklmnopqrstuvwxyz"
+oneCharsFromID = oneCharsFromID + oneCharsFromID.toUpperCase()
+oneCharsFromID += "0123456789"
+oneCharsFromID += "_-"
+console.log(oneCharsFromID.length)
+
+var defaultIDIndexes = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+//var defaultIDIndexes = [44, 37, 32, 45, 41, 37, 46, 3, 13, 53, 0]
+var IDIndexes = localStorage.getItem("IDIndexes")?JSON.parse(localStorage.getItem("IDIndexes")):defaultIDIndexes
+
+var IDs = []
+
+function generateID(indexes){
+	var ID = ""
+	for (var indexI in indexes){
+		ID += oneCharsFromID[indexes[indexI]]
+	}
+	return ID
+}
+function loadNext(){
+	rootDiv.innerHTML = ""
+	for (var i = 0; i < oneCharsFromID.length; i++){
+		//var oneCharFromID = oneCharsFromID[i]
+		var ID = generateID(IDIndexes)
+		var URL = "https://i.ytimg.com/vi/"+ID+"/hqdefault.jpg"
+		if (imageExists(URL)){
+			IDs.push(ID)
+			rootDiv.innerHTML += "<img src='"+URL+"'>"
+		}
+		document.getElementById("videoID").innerHTML = ID
+		IDIndexes[10] = i
+	}
+
+	IDIndexes = IDIndexes.reverse()
+	for (var index in IDIndexes){
+		var indexAnd1 = (Number(index) + 1)
+		if(IDIndexes[index] >= oneCharsFromID.length-1){
+			IDIndexes[index] = defaultIDIndexes[index]
+			if (IDIndexes.length > indexAnd1){
+				IDIndexes[indexAnd1]++
+			}
+			else {
+				document.location.search = "finished=true"
+			}
+		}
+	}
+	IDIndexes = IDIndexes.reverse()
+	
+	IDIndexes[10] = 0
+	
+	localStorage.setItem("IDIndexes", JSON.stringify(IDIndexes))
+	IDIndexes = localStorage.getItem("IDIndexes")?JSON.parse(localStorage.getItem("IDIndexes")):defaultIDIndexes
+	
+	console.clear()
+	OK()
+}
+function imageExists(image_url){
+	var http = new XMLHttpRequest();
+	http.open('HEAD', image_url, false);
+	http.send();
+	return http.status != 404;
+}
+
+function OK(){
+	var storedIDs = localStorage.getItem("IDs")?JSON.parse(localStorage.getItem("IDs")):[]
+	storedIDs = storedIDs.concat(IDs)
+	for (var storedID of storedIDs){
+		//storedID = storedIDs[ind]
+		if (storedID.length > 11){
+			for( var i = 0; i < storedIDs.length; i++){ 
+				if ( storedIDs[i] === storedID) { 
+					storedIDs.splice(i, 1); 
+				}
+			
+			}
+		}
+	}
+	localStorage.setItem("IDs", JSON.stringify(storedIDs))
+	
+	document.getElementById("videoIDs").innerHTML = storedIDs.join(", ")
+	
+	rootDiv.innerHTML = ""
+	if (document.getElementById("canDo").value === "1"){
+		loadNext()
+	}
+}
+
+var storedIDs = localStorage.getItem("IDs")?JSON.parse(localStorage.getItem("IDs")):[]
+document.getElementById("videoIDs").innerHTML = storedIDs.join(", ")
+</script>
+</body>
+</html>
