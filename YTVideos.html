@@ -3,51 +3,100 @@
 <head>
 <meta charset="UTF-8">
 <title>Youtube videos</title>
+<style>
+#videoID, #videoIDs {
+	font-size: 100px;
+}
+#videoIDs {
+	background-color: black;
+	color: white;
+}
+</style>
+<!--<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.js"></script>-->
 </head>
 <body>
 <noscript>You must enable JavaScript in your browser.</noscript>
 <button onclick="loadNext()">Start</button>
+<button onclick="localStorage.clear()">Clear</button>
 <!--<button onclick="loadNext()">Load next 64</button>
 <button onclick="OK()">OK</button>-->
-<input id="canDo" value="1">
-<h1 id="videoID">Waiting to start...</h1>
+<input id="canDo" value="1"><br>
+<span id="videoID">Waiting to start...</span>
 <div id="videoIDs"></div>
-<div id="root" style="display: none"></div>
+<!--<div id="root" style="display: none"></div>-->
+<div style="display: none">
 //localStorage.clear();<br>
 (localStorage.IDs?(JSON.parse(localStorage.IDs).length > 0?"IDs are avalbiable.":"IDs aren't."):"Nothing.")
+</div>
 <script>
-var rootDiv = document.getElementById("root")
-var oneCharsFromID = "abcdefghijklmnopqrstuvwxyz"
+//var rootDiv = document.getElementById("root")
+/*var oneCharsFromID = "abcdefghijklmnopqrstuvwxyz"
 oneCharsFromID = oneCharsFromID + oneCharsFromID.toUpperCase()
 oneCharsFromID += "0123456789"
-oneCharsFromID += "_-"
+oneCharsFromID += "_-"*/
+var oneCharsFromID = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_-"
 console.log(oneCharsFromID.length)
 
+//aaaaaaaaaaa
 var defaultIDIndexes = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+
+//SLGTPLUdn1Q
 //var defaultIDIndexes = [44, 37, 32, 45, 41, 37, 46, 3, 13, 53, 0]
-var IDIndexes = localStorage.getItem("IDIndexes")?JSON.parse(localStorage.getItem("IDIndexes")):defaultIDIndexes
+
+//98tQPM3R3qU
+//var defaultIDIndexes = [61, 60, 19, 42, 41, 38, 55, 43, 55, 16, 0]
+
+function getIDs(){
+	return localStorage.getItem("IDs")?JSON.parse(localStorage.getItem("IDs")):[]
+}
+
+function getIndexes(){
+	return localStorage.getItem("IDIndexes")?JSON.parse(localStorage.getItem("IDIndexes")):defaultIDIndexes
+}
+
+var IDIndexes = getIndexes()
 
 var IDs = []
 
+function removeDuplicates(data){
+	return data.filter((value, index)=>data.indexOf(value) === index)
+}
 function generateID(indexes){
 	var ID = ""
-	for (var indexI in indexes){
-		ID += oneCharsFromID[indexes[indexI]]
+	for (var index of indexes){
+		ID += oneCharsFromID[index]
 	}
 	return ID
 }
+
+function generatIndexes(ID){
+	var indexes = []
+	for (var IDPart of ID){
+		indexes.push(oneCharsFromID.indexOf(IDPart))
+	}
+	return indexes
+}
+
+function IDToIndexes(ID){
+	return "["+generatIndexes(ID).join(", ")+"]"
+}
+
+function processVideo(ID){
+	document.getElementById("videoID").innerHTML = ID
+	if (imageExists(`https://i.ytimg.com/vi/${ID}/hqdefault.jpg`)){
+		IDs.push(ID)
+		//rootDiv.innerHTML += "<img src='"+URL+"'>"
+	}
+}
+
 function loadNext(){
-	rootDiv.innerHTML = ""
+	//rootDiv.innerHTML = ""
 	for (var i = 0; i < oneCharsFromID.length; i++){
-		//var oneCharFromID = oneCharsFromID[i]
-		var ID = generateID(IDIndexes)
-		var URL = "https://i.ytimg.com/vi/"+ID+"/hqdefault.jpg"
-		if (imageExists(URL)){
-			IDs.push(ID)
-			rootDiv.innerHTML += "<img src='"+URL+"'>"
-		}
-		document.getElementById("videoID").innerHTML = ID
 		IDIndexes[10] = i
+		processVideo(generateID(IDIndexes))
+		if (!window.navigator.onLine){
+			document.getElementById("videoID").innerHTML = "OFFLINE"
+		}
 	}
 
 	IDIndexes = IDIndexes.reverse()
@@ -68,48 +117,48 @@ function loadNext(){
 	IDIndexes[10] = 0
 	
 	localStorage.setItem("IDIndexes", JSON.stringify(IDIndexes))
-	IDIndexes = localStorage.getItem("IDIndexes")?JSON.parse(localStorage.getItem("IDIndexes")):defaultIDIndexes
+	IDIndexes = getIndexes()
 	
 	console.clear()
 	OK()
 }
 function imageExists(image_url){
-	var http = new XMLHttpRequest();
-	http.open('HEAD', image_url, false);
-	try {
-		http.send();
-	}
-	finally {
-		return http.status != 404;
-	}
-	//return http.status != 404;
-}
-
-function OK(){
-	var storedIDs = localStorage.getItem("IDs")?JSON.parse(localStorage.getItem("IDs")):[]
-	storedIDs = storedIDs.concat(IDs)
-	for (var storedID of storedIDs){
-		//storedID = storedIDs[ind]
-		if (storedID.length > 11){
-			for( var i = 0; i < storedIDs.length; i++){ 
-				if ( storedIDs[i] === storedID) { 
-					storedIDs.splice(i, 1); 
+	var OKStatuses = [200, 404]
+	var status = -1
+	while (!OKStatuses.includes(status)){
+		if (window.navigator.onLine){
+			var http = new XMLHttpRequest();
+			http.open('HEAD', image_url, false);
+			try {
+				http.send()
+			} catch(exception) {
+				if(exception.name == 'NetworkError'){
+					console.log('There was a network error.');
+					return imageExists(image_url)
 				}
-			
+			}
+			finally {
+				status = http.status
 			}
 		}
 	}
+	return (status === 200);
+}
+
+function OK(){
+	var storedIDs = getIDs()
+	storedIDs = removeDuplicates(storedIDs.concat(IDs))
 	localStorage.setItem("IDs", JSON.stringify(storedIDs))
 	
 	document.getElementById("videoIDs").innerHTML = storedIDs.join(", ")
 	
-	rootDiv.innerHTML = ""
+	//rootDiv.innerHTML = ""
 	if (document.getElementById("canDo").value === "1"){
 		loadNext()
 	}
 }
 
-var storedIDs = localStorage.getItem("IDs")?JSON.parse(localStorage.getItem("IDs")):[]
+var storedIDs = getIDs()
 document.getElementById("videoIDs").innerHTML = storedIDs.join(", ")
 </script>
 </body>
